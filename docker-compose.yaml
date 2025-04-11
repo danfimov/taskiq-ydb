@@ -1,0 +1,28 @@
+services:
+  ydb:
+    image: ydbplatform/local-ydb:24.4
+    platform: linux/amd64
+    ports:
+      - "2135:2135"
+      - "2136:2136"
+      - "8765:8765"
+    environment:
+      GRPC_TLS_PORT: 2135
+      GRPC_PORT: 2136
+      MON_PORT: 8765
+      YDB_USE_IN_MEMORY_PDISKS: "true"
+    volumes:
+      - ./ydb_certs:/ydb_certs
+      - ./ydb_data:/ydb_data
+    restart: always
+    hostname: localhost
+
+  redis:
+    image: redis:7
+    ports:
+      - 6379:6379
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 1s
+      retries: 5
