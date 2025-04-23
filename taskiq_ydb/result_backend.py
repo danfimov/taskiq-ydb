@@ -73,6 +73,7 @@ class YdbResultBackend(AsyncResultBackend[_ReturnType]):
         """Close the connection pool."""
         if hasattr(self, "_pool"):
             await self._pool.stop(timeout=10)
+        self._driver.topic_client.close()
         await self._driver.stop(timeout=10)
 
     async def set_result(
