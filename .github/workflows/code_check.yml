@@ -27,7 +27,7 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
           uv sync --all-extras
-      - name: Run YDB in container
+      - name: Docker compose
         uses: adambirds/docker-compose-action@v1.5.0
         with:
           compose-file: "docker-compose.yml"
