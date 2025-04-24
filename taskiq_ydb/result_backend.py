@@ -1,3 +1,4 @@
+import asyncio
 import logging
 import typing as tp
 
@@ -11,7 +12,7 @@ from taskiq_ydb.exceptions import DatabaseConnectionError, ResultIsMissingError
 
 
 logger = logging.getLogger(__name__)
-_ReturnType = tp.TypeVar("_ReturnType")
+_ReturnType = tp.TypeVar('_ReturnType')
 
 
 class YdbResultBackend(AsyncResultBackend[_ReturnType]):
@@ -20,20 +21,27 @@ class YdbResultBackend(AsyncResultBackend[_ReturnType]):
     def __init__(
         self,
         driver_config: ydb.aio.driver.DriverConfig,
-        table_name: str = "taskiq_results",
+        table_name: str = 'taskiq_results',
         serializer: TaskiqSerializer | None = None,
-        pool_size: int = 10,
+        pool_size: int = 5,
+        connection_timeout: int = 5,
     ) -> None:
         """
         Construct new result backend.
 
-        :param keep_results: flag to not remove results from Redis after reading.
+        :param driver_config: YDB driver configuration.
+        :param table_name: Table name for storing task results.
+        :param serializer: Serializer for task results.
+        :param pool_size: YDB session pool size.
+        :param connection_timeout: Timeout for connection to database during startup.
+
         """
         self._driver = ydb.aio.Driver(driver_config=driver_config)
         self._table_name: tp.Final = table_name
         self._serializer: tp.Final = serializer or PickleSerializer()
         self._pool_size: tp.Final = pool_size
         self._pool: ydb.aio.SessionPool
+        self._connection_timeout: tp.Final = connection_timeout
 
     async def startup(self) -> None:
         """
@@ -43,35 +51,36 @@ class YdbResultBackend(AsyncResultBackend[_ReturnType]):
         and create new table for results if not exists.
         """
         try:
-            logger.debug("Waiting for YDB driver to be ready")
-            await self._driver.wait(fail_fast=True, timeout=10)
-        except (ydb.issues.ConnectionLost, TimeoutError) as exception:
+            logger.debug('Waiting for YDB driver to be ready')
+            await self._driver.wait(fail_fast=True, timeout=self._connection_timeout)
+        except (ydb.issues.ConnectionLost, asyncio.exceptions.TimeoutError) as exception:
             raise DatabaseConnectionError from exception
         self._pool = ydb.aio.SessionPool(self._driver, size=self._pool_size)
         session = await self._pool.acquire()
 
-        table_path = f"{self._driver._driver_config.database}/{self._table_name}"  # noqa: SLF001
+        table_path = f'{self._driver._driver_config.database}/{self._table_name}'  # noqa: SLF001
         try:
-            logger.debug("Checking if table %s exists", self._table_name)
+            logger.debug('Checking if table %s exists', self._table_name)
             existing_table = await session.describe_table(table_path)
         except ydb.issues.SchemeError:
             existing_table = None
         if not existing_table:
-            logger.debug("Table %s does not exist, creating...", self._table_name)
+            logger.debug('Table %s does not exist, creating...', self._table_name)
             await session.create_table(
                 table_path,
                 ydb.TableDescription()
-                .with_column(ydb.Column("task_id", ydb.OptionalType(ydb.PrimitiveType.Utf8)))
-                .with_column(ydb.Column("result", ydb.OptionalType(ydb.PrimitiveType.String)))
-                .with_primary_key("task_id"),
+                .with_column(ydb.Column('task_id', ydb.OptionalType(ydb.PrimitiveType.Utf8)))
+                .with_column(ydb.Column('result', ydb.OptionalType(ydb.PrimitiveType.String)))
+                .with_primary_key('task_id'),
             )
-            logger.debug("Table created")
+            logger.debug('Table created')
         else:
-            logger.debug("Table %s exists", self._table_name)
+            logger.debug('Table %s already exists', self._table_name)
 
     async def shutdown(self) -> None:
         """Close the connection pool."""
-        if hasattr(self, "_pool"):
+        await asyncio.to_thread(self._driver.topic_client.close)
+        if hasattr(self, '_pool'):
             await self._pool.stop(timeout=10)
         await self._driver.stop(timeout=10)
 
@@ -95,13 +104,12 @@ class YdbResultBackend(AsyncResultBackend[_ReturnType]):
             UPSERT INTO {self._table_name} (task_id, result)
             VALUES ($taskId, $resultString);
         """
-        dumped_result = self._serializer.dumpb(result)
         session = await self._pool.acquire()
         await session.transaction().execute(
             await session.prepare(query),
             {
-                "$taskId": task_id,
-                "$resultString": dumped_result,
+                '$taskId': task_id,
+                '$resultString': self._serializer.dumpb(result),
             },
             commit_tx=True,
         )
@@ -129,9 +137,9 @@ class YdbResultBackend(AsyncResultBackend[_ReturnType]):
         """  # noqa: S608
         session = await self._pool.acquire()
         result_sets = await session.transaction().execute(
-            query,
+            await session.prepare(query),
             {
-                "$taskId": (task_id, ydb.PrimitiveType.Utf8),
+                '$taskId': task_id,
             },
             commit_tx=True,
         )
@@ -159,15 +167,15 @@ class YdbResultBackend(AsyncResultBackend[_ReturnType]):
         """  # noqa: S608
         session = await self._pool.acquire()
         result_sets = await session.transaction().execute(
-            query,
+            await session.prepare(query),
             {
-                "$taskId": task_id,
+                '$taskId': task_id,
             },
             commit_tx=True,
         )
         await self._pool.release(session)
         if not result_sets[0].rows:
-            msg = f"No result found for task {task_id} in YDB"
+            msg = f'No result found for task {task_id} in YDB'
             raise ResultIsMissingError(msg)
         taskiq_result: TaskiqResult[_ReturnType] = self._serializer.loadb(
             result_sets[0].rows[0].result,

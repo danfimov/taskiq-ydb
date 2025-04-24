@@ -1,6 +1,6 @@
 [project]
 name = "taskiq-ydb"
-version = "0.1.0"
+version = "0.2.0"
 description = "YDB integration for taskiq"
 readme = "README.md"
 classifiers = [
@@ -44,10 +44,11 @@ dev = [
     "mypy>=1.15.0",
     "pytest>=8.3.5",
     "pytest-asyncio>=0.26.0",
+    "pytest-cov>=6.1.1",
+    "pytest-report>=0.2.1",
     "ruff>=0.11.4",
     "taskiq-redis>=1.0.4",
 ]
-
 
 [tool.pytest.ini_options]
 pythonpath = [
@@ -59,6 +60,24 @@ markers = [
     "unit: marks unit tests",
     "integration: marks tests with real infrastructure env",
     "linting: marks tests as linter/static analyzers",
+]
+filterwarnings = [
+    # generation of OpenAPI schema from pydantic models
+    "ignore:The event_loop fixture provided by pytest-asyncio has been redefined:DeprecationWarning",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "# pragma: no cover",
+    "def __repr__",
+    "def __str__",
+    "def __unicode__",
+]
+show_missing = true
+skip_empty = true
+omit = [
+    "*/__init__.py",
+    "tests/*",
 ]
 
 [tool.ruff]
@@ -80,8 +99,10 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = [
     # Docstrings
-    "D103",
-    "D100",
+    "D",
+
+    # annotations
+    "ANN",
 
     # Strange rules about boolean args
     "FBT001",
@@ -97,6 +118,14 @@ ignore = [
 [tool.ruff.lint.isort]
 known-local-folder = ["taskiq_aiopg"]
 lines-after-imports = 2
+
+[tool.ruff.lint.flake8-quotes]
+multiline-quotes = "double"
+docstring-quotes = "double"
+inline-quotes = "single"
+
+[tool.ruff.format]
+quote-style = "single"
 
 [tool.mypy]
 check_untyped_defs = true
