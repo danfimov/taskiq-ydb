@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import asyncio
 import json
 import logging
@@ -87,5 +89,5 @@ class YdbBroker(AsyncBroker):
                     reader.commit(message_from_topic)
                     logger.debug('Received task with id: %s', message_from_topic.metadata_items['task_id'])
                     yield message_from_topic.data
-                except asyncio.exceptions.TimeoutError:
+                except asyncio.exceptions.TimeoutError:  # noqa: PERF203
                     pass

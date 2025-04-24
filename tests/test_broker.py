@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import asyncio
 import uuid
 
@@ -119,7 +121,7 @@ class TestBroker:
             try:
                 task.result()
                 recieved += 1
-            except asyncio.exceptions.InvalidStateError:
+            except asyncio.exceptions.InvalidStateError:  # noqa: PERF203
                 pass
 
         # then

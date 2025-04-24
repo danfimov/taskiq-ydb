@@ -3,7 +3,6 @@ import uuid
 
 import pytest
 import taskiq
-import taskiq_redis
 import ydb  # type: ignore[import-untyped]
 import ydb.aio  # type: ignore[import-untyped]
 
@@ -20,9 +19,6 @@ class TestResultBackend:
             driver_config=invalid_driver_config,
             connection_timeout=0,  # for faster test
         )
-        taskiq_redis.ListQueueBroker(
-            url='redis://localhost:6379',
-        ).with_result_backend(result_backend)
 
         with pytest.raises(taskiq_ydb.exceptions.DatabaseConnectionError):
             await result_backend.startup()
@@ -37,7 +33,7 @@ class TestResultBackend:
     async def test_when_backend_started__then_table_for_result_created(
         self,
         is_table_already_exists: bool,
-        redis_broker: taskiq_redis.ListQueueBroker,
+        result_backend: taskiq_ydb.YdbResultBackend,
         ydb_session: ydb.Session,
     ) -> None:
         # given
@@ -54,7 +50,7 @@ class TestResultBackend:
             await ydb_session.drop_table(default_table_path)
 
         # when
-        await redis_broker.startup()
+        await result_backend.startup()
 
         # then
         assert await ydb_session.describe_table(default_table_path)
