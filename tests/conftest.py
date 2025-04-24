@@ -2,7 +2,6 @@ import typing as tp
 
 import pytest
 import taskiq
-import taskiq_redis
 import ydb  # type: ignore[import-untyped]
 import ydb.aio  # type: ignore[import-untyped]
 
@@ -45,18 +44,6 @@ async def result_backend(
     finally:
         await backend.shutdown()
 
-
-@pytest.fixture
-async def redis_broker(
-    result_backend: taskiq_ydb.YdbResultBackend,
-) -> tp.AsyncGenerator[taskiq_redis.ListQueueBroker, None]:
-    broker = taskiq_redis.ListQueueBroker(
-        url='redis://localhost:6379',
-    ).with_result_backend(result_backend)
-    try:
-        yield broker
-    finally:
-        await broker.shutdown()
 
 @pytest.fixture
 async def ydb_broker(

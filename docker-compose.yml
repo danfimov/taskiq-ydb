@@ -16,14 +16,3 @@ services:
       - ./ydb_certs:/ydb_certs
       - ./ydb_data:/ydb_data
     restart: always
-
-  redis:
-    image: redis:7
-    hostname: localhost
-    ports:
-      - 6379:6379
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 3s
-      timeout: 1s
-      retries: 5

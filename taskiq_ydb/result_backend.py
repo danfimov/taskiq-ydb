@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import asyncio
 import logging
 import typing as tp
@@ -6,10 +8,13 @@ import uuid
 import ydb  # type: ignore[import-untyped]
 import ydb.aio  # type: ignore[import-untyped]
 from taskiq import AsyncResultBackend, TaskiqResult
-from taskiq.abc.serializer import TaskiqSerializer
 from taskiq.serializers import PickleSerializer
 
 from taskiq_ydb.exceptions import DatabaseConnectionError, ResultIsMissingError
+
+
+if tp.TYPE_CHECKING:
+    from taskiq.abc.serializer import TaskiqSerializer
 
 
 logger = logging.getLogger(__name__)

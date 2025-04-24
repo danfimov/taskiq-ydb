@@ -5,6 +5,10 @@ jobs:
   test:
     runs-on: ubuntu-latest
     name: Run tests
+    strategy:
+      matrix:
+        python-version: [ "3.9", "3.10", "3.11", "3.12", "3.13" ]
+      fail-fast: false
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
@@ -13,17 +17,17 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: 3.12
+          python-version: ${{ matrix.python-version }}
       - uses: actions/cache@v4
         id: cache
         with:
           path: ${{ env.pythonLocation }}
-          key: ${{ runner.os }}-python-${{ env.pythonLocation }}-${{ hashFiles('pyproject.toml') }}-uv
+          key: ${{ matrix.python-version }}-python-${{ hashFiles('uv.lock') }}-uv
       - name: Install Dependencies
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
           uv sync --all-extras
-      - name: Test
+      - name: Docker compose
         uses: adambirds/docker-compose-action@v1.5.0
         with:
           compose-file: "docker-compose.yml"
