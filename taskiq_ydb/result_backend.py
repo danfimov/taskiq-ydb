@@ -79,7 +79,7 @@ class YdbResultBackend(AsyncResultBackend[_ReturnType]):
 
     async def shutdown(self) -> None:
         """Close the connection pool."""
-        self._driver.topic_client.close()
+        await asyncio.to_thread(self._driver.topic_client.close)
         if hasattr(self, '_pool'):
             await self._pool.stop(timeout=10)
         await self._driver.stop(timeout=10)

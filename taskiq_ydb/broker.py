@@ -61,7 +61,7 @@ class YdbBroker(AsyncBroker):
 
     async def shutdown(self) -> None:
         """Close the topic client and stop the driver."""
-        self._driver.topic_client.close()
+        await asyncio.to_thread(self._driver.topic_client.close)
         await self._driver.stop(timeout=10)
         return await super().shutdown()
 
