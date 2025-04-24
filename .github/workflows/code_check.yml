@@ -22,12 +22,12 @@ jobs:
         id: cache
         with:
           path: ${{ env.pythonLocation }}
-          key: ${{ matrix.python-version }}-python-${{ env.pythonLocation }}-${{ hashFiles('pyproject.toml') }}-uv
+          key: ${{ matrix.python-version }}-python-${{ hashFiles('pyproject.toml') }}-uv
       - name: Install Dependencies
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
           uv sync --all-extras
-      - name: Test
+      - name: Run YDB in container
         uses: adambirds/docker-compose-action@v1.5.0
         with:
           compose-file: "docker-compose.yml"
