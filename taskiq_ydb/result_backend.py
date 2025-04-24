@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import typing as tp
+import uuid
 
 import ydb  # type: ignore[import-untyped]
 import ydb.aio  # type: ignore[import-untyped]
@@ -18,10 +19,11 @@ _ReturnType = tp.TypeVar('_ReturnType')
 class YdbResultBackend(AsyncResultBackend[_ReturnType]):
     """Result backend for TaskIQ based on YDB."""
 
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         driver_config: ydb.aio.driver.DriverConfig,
         table_name: str = 'taskiq_results',
+        table_primary_key_type: tp.Literal[ydb.PrimitiveType.UUID, ydb.PrimitiveType.Utf8] = ydb.PrimitiveType.UUID,  # type: ignore[valid-type]
         serializer: TaskiqSerializer | None = None,
         pool_size: int = 5,
         connection_timeout: int = 5,
@@ -31,6 +33,7 @@ class YdbResultBackend(AsyncResultBackend[_ReturnType]):
 
         :param driver_config: YDB driver configuration.
         :param table_name: Table name for storing task results.
+        :param table_primary_key_type: Type of primary key in table.
         :param serializer: Serializer for task results.
         :param pool_size: YDB session pool size.
         :param connection_timeout: Timeout for connection to database during startup.
@@ -38,6 +41,7 @@ class YdbResultBackend(AsyncResultBackend[_ReturnType]):
         """
         self._driver = ydb.aio.Driver(driver_config=driver_config)
         self._table_name: tp.Final = table_name
+        self._table_primary_key_type: tp.Final = table_primary_key_type
         self._serializer: tp.Final = serializer or PickleSerializer()
         self._pool_size: tp.Final = pool_size
         self._pool: ydb.aio.SessionPool
@@ -69,11 +73,11 @@ class YdbResultBackend(AsyncResultBackend[_ReturnType]):
             await session.create_table(
                 table_path,
                 ydb.TableDescription()
-                .with_column(ydb.Column('task_id', ydb.OptionalType(ydb.PrimitiveType.Utf8)))
+                .with_column(ydb.Column('task_id', self._table_primary_key_type))
                 .with_column(ydb.Column('result', ydb.OptionalType(ydb.PrimitiveType.String)))
                 .with_primary_key('task_id'),
             )
-            logger.debug('Table created')
+            logger.debug('Table %s created', self._table_name)
         else:
             logger.debug('Table %s already exists', self._table_name)
 
@@ -86,19 +90,18 @@ class YdbResultBackend(AsyncResultBackend[_ReturnType]):
 
     async def set_result(
         self,
-        task_id: tp.Any,  # noqa: ANN401
+        task_id: str,
         result: TaskiqResult[_ReturnType],
     ) -> None:
         """
         Set result to the YDB table.
 
-        Args:
-            task_id (Any): ID of the task.
-            result (TaskiqResult[_ReturnType]):  result of the task.
-
+        :param task_id: ID of the task.
+        :param result: result of the task
         """
+        task_id_in_ydb = uuid.UUID(task_id) if self._table_primary_key_type == ydb.PrimitiveType.UUID else task_id
         query = f"""
-            DECLARE $taskId AS Utf8;
+            DECLARE $taskId AS {self._table_primary_key_type};
             DECLARE $resultString AS String;
 
             UPSERT INTO {self._table_name} (task_id, result)
@@ -108,7 +111,7 @@ class YdbResultBackend(AsyncResultBackend[_ReturnType]):
         await session.transaction().execute(
             await session.prepare(query),
             {
-                '$taskId': task_id,
+                '$taskId': task_id_in_ydb,
                 '$resultString': self._serializer.dumpb(result),
             },
             commit_tx=True,
@@ -117,20 +120,16 @@ class YdbResultBackend(AsyncResultBackend[_ReturnType]):
 
     async def is_result_ready(
         self,
-        task_id: tp.Any,  # noqa: ANN401
+        task_id: str,
     ) -> bool:
         """
         Return whether the result is ready.
 
-        Args:
-            task_id (Any): ID of the task.
-
-        Returns:
-            bool: True if the result is ready else False.
-
+        :param task_id: ID of the task.
         """
+        task_id_in_ydb = uuid.UUID(task_id) if self._table_primary_key_type == ydb.PrimitiveType.UUID else task_id
         query = f"""
-            DECLARE $taskId AS Utf8;
+            DECLARE $taskId AS {self._table_primary_key_type};
 
             SELECT task_id FROM {self._table_name}
             WHERE task_id = $taskId;
@@ -139,7 +138,7 @@ class YdbResultBackend(AsyncResultBackend[_ReturnType]):
         result_sets = await session.transaction().execute(
             await session.prepare(query),
             {
-                '$taskId': task_id,
+                '$taskId': task_id_in_ydb,
             },
             commit_tx=True,
         )
@@ -148,7 +147,7 @@ class YdbResultBackend(AsyncResultBackend[_ReturnType]):
 
     async def get_result(
         self,
-        task_id: tp.Any,  # noqa: ANN401
+        task_id: str,
         with_logs: bool = False,  # noqa: FBT002, FBT001
     ) -> TaskiqResult[_ReturnType]:
         """
@@ -159,8 +158,9 @@ class YdbResultBackend(AsyncResultBackend[_ReturnType]):
         :raises ResultIsMissingError: if there is no result when trying to get it.
         :return: TaskiqResult.
         """
+        task_id_in_ydb = uuid.UUID(task_id) if self._table_primary_key_type == ydb.PrimitiveType.UUID else task_id
         query = f"""
-            DECLARE $taskId AS Utf8;
+            DECLARE $taskId AS {self._table_primary_key_type};
 
             SELECT result FROM {self._table_name}
             WHERE task_id = $taskId;
@@ -169,7 +169,7 @@ class YdbResultBackend(AsyncResultBackend[_ReturnType]):
         result_sets = await session.transaction().execute(
             await session.prepare(query),
             {
-                '$taskId': task_id,
+                '$taskId': task_id_in_ydb,
             },
             commit_tx=True,
         )

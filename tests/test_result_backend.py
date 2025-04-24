@@ -11,12 +11,12 @@ import taskiq_ydb
 
 
 class TestResultBackend:
-    async def test_when_database_is_unreachable__then_raise_database_connection_error(self):
+    async def test_when_database_is_unreachable__then_raise_database_connection_error(self) -> None:
         invalid_driver_config = ydb.aio.driver.DriverConfig(
             endpoint='invalid_endpoint:2135',
             database='/local',
         )
-        result_backend = taskiq_ydb.YdbResultBackend(
+        result_backend: taskiq_ydb.YdbResultBackend = taskiq_ydb.YdbResultBackend(
             driver_config=invalid_driver_config,
             connection_timeout=0,  # for faster test
         )
@@ -39,7 +39,7 @@ class TestResultBackend:
         is_table_already_exists: bool,
         redis_broker: taskiq_redis.ListQueueBroker,
         ydb_session: ydb.Session,
-    ):
+    ) -> None:
         # given
         default_table_path = '/local/taskiq_results'
         if is_table_already_exists:
@@ -71,7 +71,7 @@ class TestResultBackend:
         is_result_saved: bool,
         result_backend: taskiq_ydb.YdbResultBackend,
         default_taskiq_result: taskiq.TaskiqResult[tp.Any],
-    ):
+    ) -> None:
         # given
         task_id = uuid.uuid4().hex
         await result_backend.startup()
@@ -86,7 +86,7 @@ class TestResultBackend:
         self,
         result_backend: taskiq_ydb.YdbResultBackend,
         default_taskiq_result: taskiq.TaskiqResult[tp.Any],
-    ):
+    ) -> None:
         # given
         task_id = uuid.uuid4().hex
         await result_backend.startup()
@@ -99,7 +99,7 @@ class TestResultBackend:
     async def test_when_result_not_saved__then_get_result_should_raise_error(
         self,
         result_backend: taskiq_ydb.YdbResultBackend,
-    ):
+    ) -> None:
         # given
         task_id = uuid.uuid4().hex
         await result_backend.startup()

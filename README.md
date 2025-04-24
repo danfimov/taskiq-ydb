@@ -80,7 +80,8 @@ taskiq worker example:broker
 **Result backend:**
 
 - `driver_config`: connection config for YDB client, you can read more about it in [YDB documentation](https://ydb.tech/docs/en/concepts/connect);
-- `table_name`: name of the table in PostgreSQL to store TaskIQ results;
+- `table_name`: name of the table to store task results;
+- `table_primary_key_type`: type of primary key in task results table, default is `uuid`;
 - `serializer`: type of `TaskiqSerializer` default is `PickleSerializer`;
 - `pool_size`: size of the connection pool for YDB client, default is `5`;
 - `connection_timeout`: timeout for connection to database during startup, default is 5 seconds.

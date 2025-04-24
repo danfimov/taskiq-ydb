@@ -9,8 +9,12 @@ import ydb.aio  # type: ignore[import-untyped]
 import taskiq_ydb
 
 
+if tp.TYPE_CHECKING:
+    import asyncio
+
+
 @pytest.fixture(scope='session')
-def event_loop():
+def event_loop() -> 'tp.Generator[asyncio.AbstractEventLoop, None]':
     import asyncio
 
     loop = asyncio.new_event_loop()
@@ -30,8 +34,10 @@ def driver_config() -> ydb.aio.driver.DriverConfig:
 
 
 @pytest.fixture
-async def result_backend(driver_config) -> tp.AsyncGenerator[taskiq_ydb.YdbResultBackend, None]:
-    backend = taskiq_ydb.YdbResultBackend(
+async def result_backend(
+    driver_config: ydb.aio.driver.DriverConfig,
+) -> tp.AsyncGenerator[taskiq_ydb.YdbResultBackend, None]:
+    backend: taskiq_ydb.YdbResultBackend = taskiq_ydb.YdbResultBackend(
         driver_config=driver_config,
     )
     try:
@@ -80,7 +86,7 @@ async def ydb_driver(driver_config: ydb.aio.driver.DriverConfig) -> tp.AsyncGene
 
 
 @pytest.fixture
-async def ydb_pool(ydb_driver):
+async def ydb_pool(ydb_driver: ydb.aio.Driver) -> tp.AsyncGenerator[ydb.aio.SessionPool, None]:
     pool = ydb.aio.SessionPool(ydb_driver, size=10)
     try:
         yield pool
@@ -89,7 +95,7 @@ async def ydb_pool(ydb_driver):
 
 
 @pytest.fixture
-async def ydb_session(ydb_pool):
+async def ydb_session(ydb_pool: ydb.aio.SessionPool) -> tp.AsyncGenerator[ydb.Session, None]:
     session = await ydb_pool.acquire()
     try:
         yield session
