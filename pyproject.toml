@@ -62,7 +62,6 @@ markers = [
     "linting: marks tests as linter/static analyzers",
 ]
 filterwarnings = [
-    # generation of OpenAPI schema from pydantic models
     "ignore:The event_loop fixture provided by pytest-asyncio has been redefined:DeprecationWarning",
 ]
 
