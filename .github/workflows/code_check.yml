@@ -24,4 +24,9 @@ jobs:
         run: |
           uv sync --all-extras
       - name: Test
-        run: uv run pytest
+        uses: adambirds/docker-compose-action@v1.5.0
+        with:
+          compose-file: "docker-compose.yml"
+      - name: Test
+        run: |
+          uv run pytest

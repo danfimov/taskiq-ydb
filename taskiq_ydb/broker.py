@@ -19,18 +19,24 @@ class YdbBroker(AsyncBroker):
     def __init__(
         self,
         driver_config: ydb.aio.driver.DriverConfig,
-        topic_path: str = "taskiq/tasks",
+        topic_path: str = 'taskiq-tasks',
+        connection_timeout: int = 5,
+        read_timeout: int = 5,
     ) -> None:
         """
         Construct new broker.
 
         :param driver_config: YDB driver configuration.
         :param topic_path: Path to the topic where tasks will be stored.
+        :param connection_timeout: Timeout for connection to database during startup.
+        :param read_timeout: Timeout for read topic operations.
         """
         super().__init__()
         self._driver = ydb.aio.Driver(driver_config=driver_config)
         self._topic_path = topic_path
-        self._consumer = "taskiq_consumer"
+        self._consumer = 'taskiq_consumer'
+        self._connection_timeout: tp.Final = connection_timeout
+        self._read_timeout: tp.Final = read_timeout
 
     async def startup(self) -> None:
         """
@@ -40,15 +46,16 @@ class YdbBroker(AsyncBroker):
         and create new topic for tasks if not exists.
         """
         try:
-            logger.debug("Waiting for YDB driver to be ready")
-            await self._driver.wait(fail_fast=True, timeout=10)
-        except (ydb.issues.ConnectionLost, TimeoutError) as exception:
+            logger.debug('Waiting for YDB driver to be ready')
+            await self._driver.wait(fail_fast=True, timeout=self._connection_timeout)
+        except (ydb.issues.ConnectionLost, asyncio.exceptions.TimeoutError) as exception:
+            await self.shutdown()
             raise DatabaseConnectionError from exception
 
         try:
             await self._driver.topic_client.describe_topic(self._topic_path)
         except ydb.issues.SchemeError:
-            await self._driver.topic_client.create_topic(self._topic_path)
+            await self._driver.topic_client.create_topic(self._topic_path, consumers=[self._consumer])
 
         return await super().startup()
 
@@ -64,9 +71,9 @@ class YdbBroker(AsyncBroker):
             message_for_topic = ydb.TopicWriterMessage(
                 data=message.message,
                 metadata_items={
-                    "task_id": message.task_id,
-                    "task_name": message.task_name,
-                    "labels": json.dumps(message.labels),
+                    'task_id': message.task_id,
+                    'task_name': message.task_name,
+                    'labels': json.dumps(message.labels),
                 },
             )
             await writer.write(message_for_topic)
@@ -76,9 +83,9 @@ class YdbBroker(AsyncBroker):
         async with self._driver.topic_client.reader(self._topic_path, consumer=self._consumer) as reader:
             while True:
                 try:
-                    message_from_topic = await asyncio.wait_for(reader.receive_message(), 5)
+                    message_from_topic = await asyncio.wait_for(reader.receive_message(), timeout=self._read_timeout)
                     reader.commit(message_from_topic)
-                    logger.debug("Received task with id: %s", message_from_topic.metadata_items["task_id"])
+                    logger.debug('Received task with id: %s', message_from_topic.metadata_items['task_id'])
                     yield message_from_topic.data
-                except TimeoutError:
+                except asyncio.exceptions.TimeoutError:
                     pass
