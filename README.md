@@ -15,7 +15,7 @@ pip install taskiq-ydb
 
 ## Usage
 
-Let's see the example with the redis broker and YDB result backend:
+Let's see the example with YDB broker and result backend:
 
 ```Python
 # example.py
