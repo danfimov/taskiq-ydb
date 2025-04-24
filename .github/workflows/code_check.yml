@@ -22,7 +22,7 @@ jobs:
         id: cache
         with:
           path: ${{ env.pythonLocation }}
-          key: ${{ matrix.python-version }}-python-${{ hashFiles('pyproject.toml') }}-uv
+          key: ${{ matrix.python-version }}-python-${{ hashFiles('uv.lock') }}-uv
       - name: Install Dependencies
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
