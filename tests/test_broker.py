@@ -41,7 +41,7 @@ def valid_broker_message() -> taskiq.BrokerMessage:
 
 
 class TestBroker:
-    async def test_when_database_is_unreachable__then_raise_database_connection_error(self):
+    async def test_when_database_is_unreachable__then_raise_database_connection_error(self) -> None:
         # given
         invalid_driver_config = ydb.aio.driver.DriverConfig(
             endpoint='invalid_endpoint:2135',
@@ -67,7 +67,7 @@ class TestBroker:
         is_topic_already_exists: bool,
         ydb_broker: taskiq_ydb.YdbBroker,
         ydb_driver: ydb.aio.driver.Driver,
-    ):
+    ) -> None:
         # given
         default_topic_path = 'taskiq-tasks'
         if is_topic_already_exists:
@@ -85,7 +85,7 @@ class TestBroker:
         self,
         ydb_broker: taskiq_ydb.YdbBroker,
         valid_broker_message: taskiq.BrokerMessage,
-    ):
+    ) -> None:
         # given
         await ydb_broker.startup()
         worker_task = asyncio.create_task(get_message(ydb_broker))
@@ -103,7 +103,7 @@ class TestBroker:
         self,
         ydb_broker: taskiq_ydb.YdbBroker,
         valid_broker_message: taskiq.BrokerMessage,
-    ):
+    ) -> None:
         # given
         await ydb_broker.startup()
         worker1_task = asyncio.create_task(get_message(ydb_broker))
