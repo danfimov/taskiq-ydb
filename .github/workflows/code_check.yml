@@ -11,26 +11,18 @@ jobs:
       fail-fast: false
     steps:
       - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v5
+      - id: setup-uv
+        uses: astral-sh/setup-uv@v5
         with:
-          version: "0.6.13"
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
+          version: "0.7.2"
+          enable-cache: true
           python-version: ${{ matrix.python-version }}
-      - uses: actions/cache@v4
-        id: cache
-        with:
-          path: ${{ env.pythonLocation }}
-          key: ${{ matrix.python-version }}-python-${{ hashFiles('uv.lock') }}-uv
       - name: Install Dependencies
-        if: steps.cache.outputs.cache-hit != 'true'
-        run: |
-          uv sync --all-extras
+        if: steps.setup-uv.outputs.cache-hit != 'true'
+        run: uv sync --all-extras
       - name: Docker compose
         uses: adambirds/docker-compose-action@v1.5.0
         with:
           compose-file: "docker-compose.yml"
       - name: Test
-        run: |
-          uv run pytest
+        run: uv run pytest
