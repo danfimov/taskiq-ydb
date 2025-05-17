@@ -1,7 +1,10 @@
 # taskiq + ydb
 
-[![Python](https://img.shields.io/badge/python-3.9_|_3.10_|_3.11_|_3.12_|_3.13-blue)](https://www.python.org/)
-[![Linters](https://github.com/danfimov/taskiq-ydb/actions/workflows/code_check.yml/badge.svg)](https://github.com/danfimov/taskiq-ydb/actions/workflows/code_check.yml)
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/taskiq-ydb?style=for-the-badge&logo=python)](https://pypi.org/project/taskiq-ydb/)
+[![PyPI](https://img.shields.io/pypi/v/taskiq-ydb?style=for-the-badge&logo=pypi)](https://pypi.org/project/taskiq-ydb/)
+[![Checks](https://img.shields.io/github/actions/workflow/status/danfimov/taskiq-ydb/code_check.yml?style=for-the-badge&logo=pytest&label=checks)](https://github.com/danfimov/taskiq-ydb)
+
+
 
 Plugin for taskiq that adds a new result backend and broker based on YDB.
 
