@@ -1,18 +1,29 @@
-name: Linters and tests
-on: [pull_request]
+name: Tests
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  actions: read
+  contents: read
+  pull-requests: read
 
 jobs:
   test:
+    name: Tests
     runs-on: ubuntu-latest
-    name: Run tests
     strategy:
       matrix:
-        python-version: [ "3.9", "3.10", "3.11", "3.12", "3.13" ]
+        python-version: [ "3.10", "3.11", "3.12", "3.13" ]
       fail-fast: false
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
       - id: setup-uv
-        uses: astral-sh/setup-uv@v6
+        uses: astral-sh/setup-uv@3259c6206f993105e3a61b142c2d97bf4b9ef83d # v7.1.0
         with:
           enable-cache: true
           python-version: ${{ matrix.python-version }}
@@ -20,7 +31,7 @@ jobs:
         if: steps.setup-uv.outputs.cache-hit != 'true'
         run: uv sync --all-extras
       - name: Docker compose
-        uses: adambirds/docker-compose-action@v1.5.0
+        uses: adambirds/docker-compose-action@bb7d920fc625486a7be4ea860554b6da88fd75a3 # v1.5.0
         with:
           compose-file: "docker-compose.yml"
       - name: Test
