@@ -8,22 +8,6 @@ import ydb.aio  # type: ignore[import-untyped]
 import taskiq_ydb
 
 
-if tp.TYPE_CHECKING:
-    import asyncio
-
-
-@pytest.fixture(scope='session')
-def event_loop() -> 'tp.Generator[asyncio.AbstractEventLoop, None]':
-    import asyncio
-
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-
-    yield loop
-    loop.close()
-
-
-
 @pytest.fixture
 def driver_config() -> ydb.aio.driver.DriverConfig:
     return ydb.aio.driver.DriverConfig(

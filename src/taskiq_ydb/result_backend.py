@@ -36,13 +36,13 @@ class YdbResultBackend(AsyncResultBackend[_ReturnType]):
         """
         Construct new result backend.
 
-        :param driver_config: YDB driver configuration.
-        :param table_name: Table name for storing task results.
-        :param table_primary_key_type: Type of primary key in table.
-        :param serializer: Serializer for task results.
-        :param pool_size: YDB session pool size.
-        :param connection_timeout: Timeout for connection to database during startup.
-
+        Args:
+            driver_config: YDB driver configuration.
+            table_name: Table name for storing task results.
+            table_primary_key_type: Type of primary key in table.
+            serializer: Serializer for task results.
+            pool_size: YDB session pool size.
+            connection_timeout: Timeout for connection to database during startup.
         """
         self._driver = ydb.aio.Driver(driver_config=driver_config)
         self._table_name: tp.Final = table_name
@@ -101,8 +101,9 @@ class YdbResultBackend(AsyncResultBackend[_ReturnType]):
         """
         Set result to the YDB table.
 
-        :param task_id: ID of the task.
-        :param result: result of the task
+        Args:
+            task_id: ID of the task.
+            result: result of the task
         """
         task_id_in_ydb = uuid.UUID(task_id) if self._table_primary_key_type == ydb.PrimitiveType.UUID else task_id
         query = f"""
@@ -130,7 +131,8 @@ class YdbResultBackend(AsyncResultBackend[_ReturnType]):
         """
         Return whether the result is ready.
 
-        :param task_id: ID of the task.
+        Args:
+            task_id: ID of the task.
         """
         task_id_in_ydb = uuid.UUID(task_id) if self._table_primary_key_type == ydb.PrimitiveType.UUID else task_id
         query = f"""
@@ -158,10 +160,15 @@ class YdbResultBackend(AsyncResultBackend[_ReturnType]):
         """
         Retrieve result from the task.
 
-        :param task_id: task's id.
-        :param with_logs: if True it will download task's logs.
-        :raises ResultIsMissingError: if there is no result when trying to get it.
-        :return: TaskiqResult.
+        Args:
+            task_id: task's id.
+            with_logs: if True it will download task's logs.
+
+        Raises:
+            ResultIsMissingError: if there is no result when trying to get it.
+
+        Returns:
+            TaskiqResult.
         """
         task_id_in_ydb = uuid.UUID(task_id) if self._table_primary_key_type == ydb.PrimitiveType.UUID else task_id
         query = f"""
