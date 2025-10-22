@@ -21,17 +21,18 @@ class YdbBroker(AsyncBroker):
     def __init__(
         self,
         driver_config: ydb.aio.driver.DriverConfig,
-        topic_path: str = 'taskiq-tasks',
+        topic_path: str = 'taskiq_tasks',
         connection_timeout: int = 5,
         read_timeout: int = 5,
     ) -> None:
         """
         Construct new broker.
 
-        :param driver_config: YDB driver configuration.
-        :param topic_path: Path to the topic where tasks will be stored.
-        :param connection_timeout: Timeout for connection to database during startup.
-        :param read_timeout: Timeout for read topic operations.
+        Args:
+            driver_config: YDB driver configuration.
+            topic_path: Path to the topic where tasks will be stored.
+            connection_timeout: Timeout for connection to database during startup.
+            read_timeout: Timeout for read topic operations.
         """
         super().__init__()
         self._driver = ydb.aio.Driver(driver_config=driver_config)

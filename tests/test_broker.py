@@ -71,7 +71,7 @@ class TestBroker:
         ydb_driver: ydb.aio.driver.Driver,
     ) -> None:
         # given
-        default_topic_path = 'taskiq-tasks'
+        default_topic_path = 'taskiq_tasks'
         if is_topic_already_exists:
             await ydb_driver.topic_client.create_topic(default_topic_path)
         else:
@@ -116,16 +116,16 @@ class TestBroker:
         await ydb_broker.kick(valid_broker_message)
         await asyncio.sleep(0.3)
 
-        recieved = 0
+        received = 0
         for task in [worker1_task, worker2_task]:
             try:
                 task.result()
-                recieved += 1
+                received += 1
             except asyncio.exceptions.InvalidStateError:  # noqa: PERF203
                 pass
 
         # then
-        assert recieved == 1
+        assert received == 1
 
         worker1_task.cancel()
         worker2_task.cancel()

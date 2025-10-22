@@ -4,9 +4,7 @@
 [![PyPI](https://img.shields.io/pypi/v/taskiq-ydb?style=for-the-badge&logo=pypi)](https://pypi.org/project/taskiq-ydb/)
 [![Checks](https://img.shields.io/github/actions/workflow/status/danfimov/taskiq-ydb/code_check.yml?style=for-the-badge&logo=pytest&label=checks)](https://github.com/danfimov/taskiq-ydb)
 
-
-
-Plugin for taskiq that adds a new result backend and broker based on YDB.
+Plugin for taskiq that adds a new result backend, broker and schedule source based on YDB.
 
 ## Installation
 
@@ -16,75 +14,119 @@ This project can be installed using pip/poetry/uv (choose your preferred package
 pip install taskiq-ydb
 ```
 
-## Usage
+## Quick start
 
-Let's see the example with YDB broker and result backend:
+### Basic task processing
 
-```Python
-# example.py
-import asyncio
+1. Define your broker with [asyncpg](https://github.com/MagicStack/asyncpg):
 
-from ydb.aio.driver import DriverConfig
-
-from taskiq_ydb import YdbBroker, YdbResultBackend
-
-
-driver_config = DriverConfig(
-    endpoint='grpc://localhost:2136',
-    database='/local',
-)
-
-broker = YdbBroker(
-    driver_config=driver_config,
-).with_result_backend(YdbResultBackend(driver_config=driver_config))
+  ```python
+  # broker_example.py
+  import asyncio
+  from ydb.aio.driver import DriverConfig
+  from taskiq_ydb import YdbBroker, YdbResultBackend
 
 
-@broker.task(task_name='best_task_ever')
-async def best_task_ever() -> str:
-    """Solve all problems in the world."""
-    return 'Problems solved!'
+  driver_config = DriverConfig(
+      endpoint='grpc://localhost:2136',
+      database='/local',
+  )
+  broker = YdbBroker(
+      driver_config=driver_config,
+  ).with_result_backend(
+      YdbResultBackend(driver_config=driver_config),
+  )
 
 
-async def main() -> None:
-    """Start the application with broker."""
-    await broker.startup()
-    task = await best_task_ever.kiq()
-    result = await task.wait_result()
-    print(f'Task result: {result.return_value}')
-    await broker.shutdown()
+  @broker.task('solve_all_problems')
+  async def best_task_ever() -> None:
+      """Solve all problems in the world."""
+      await asyncio.sleep(2)
+      print('All problems are solved!')
 
 
-if __name__ == '__main__':
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(main())
-```
+  async def main() -> None:
+      await broker.startup()
+      task = await best_task_ever.kiq()
+      print(await task.wait_result())
+      await broker.shutdown()
 
-Example can be run using the following command:
 
-```bash
-# Start broker
-python3 -m example
-```
+  if __name__ == '__main__':
+      asyncio.run(main())
+  ```
 
-```bash
-# Start worker for executing command
-taskiq worker example:broker
-```
+2. Start a worker to process tasks (by default taskiq runs two instances of worker):
 
-## Configuration
+  ```bash
+  taskiq worker broker_example:broker
+  ```
 
-**Broker:**
+3. Run `broker_example.py` file to send a task to the worker:
 
-- `driver_config`: connection config for YDB client, you can read more about it in [YDB documentation](https://ydb.tech/docs/en/concepts/connect);
-- `topic_path`: path to the topic where tasks will be stored, default is `/taskiq-tasks`;
-- `connection_timeout`: timeout for connection to database during startup, default is 5 seconds.
-- `read_timeout`: timeout for read topic operation, default is 5 seconds.
+  ```bash
+  python broker_example.py
+  ```
 
-**Result backend:**
+Your experience with other drivers will be pretty similar. Just change the import statement and that's it.
 
-- `driver_config`: connection config for YDB client, you can read more about it in [YDB documentation](https://ydb.tech/docs/en/concepts/connect);
-- `table_name`: name of the table to store task results;
-- `table_primary_key_type`: type of primary key in task results table, default is `uuid`;
-- `serializer`: type of `TaskiqSerializer` default is `PickleSerializer`;
-- `pool_size`: size of the connection pool for YDB client, default is `5`;
-- `connection_timeout`: timeout for connection to database during startup, default is 5 seconds.
+### Task scheduling
+
+1. Define your broker and schedule source:
+
+  ```python
+  # scheduler_example.py
+  import asyncio
+
+  from taskiq import TaskiqScheduler
+  from ydb.aio.driver import DriverConfig
+
+  from taskiq_ydb import YdbBroker, YdbScheduleSource
+
+
+  driver_config = DriverConfig(
+      endpoint='grpc://localhost:2136',
+      database='/local',
+  )
+  broker = YdbBroker(driver_config=driver_config)
+  scheduler = TaskiqScheduler(
+      broker=broker,
+      sources=[
+          YdbScheduleSource(
+              driver_config=driver_config,
+              broker=broker,
+          ),
+      ],
+  )
+
+
+  @broker.task(
+      task_name='solve_all_problems',
+      schedule=[
+          {
+              'cron': '*/1 * * * *',  # type: str, either cron or time should be specified.
+              'cron_offset': None,  # type: str | timedelta | None, can be omitted.
+              'time': None,  # type: datetime | None, either cron or time should be specified.
+              'args': [],  # type list[Any] | None, can be omitted.
+              'kwargs': {},  # type: dict[str, Any] | None, can be omitted.
+              'labels': {},  # type: dict[str, Any] | None, can be omitted.
+          },
+      ],
+  )
+  async def best_task_ever() -> None:
+      """Solve all problems in the world."""
+      await asyncio.sleep(2)
+      print('All problems are solved!')
+  ```
+
+2. Start worker processes:
+
+  ```bash
+  taskiq worker scheduler_example:broker
+  ```
+
+3. Run scheduler process:
+
+  ```bash
+  taskiq scheduler scheduler_example:scheduler
+  ```
