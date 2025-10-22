@@ -71,7 +71,7 @@ class TestBroker:
         ydb_driver: ydb.aio.driver.Driver,
     ) -> None:
         # given
-        default_topic_path = 'taskiq-tasks'
+        default_topic_path = 'taskiq_tasks'
         if is_topic_already_exists:
             await ydb_driver.topic_client.create_topic(default_topic_path)
         else:
