@@ -611,18 +611,6 @@ wheels = [
 ]
 
 [[package]]
-name = "importlib-metadata"
-version = "8.6.1"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "zipp" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/33/08/c1395a292bb23fd03bdf572a1357c5a733d3eecbab877641ceacab23db6e/importlib_metadata-8.6.1.tar.gz", hash = "sha256:310b41d755445d74569f993ccfc22838295d9fe005425094fad953d7f15c8580", size = 55767, upload-time = "2025-01-20T22:21:30.429Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/79/9d/0fb148dc4d6fa4a7dd1d8378168d9b4cd8d4560a6fbf6f0121c5fc34eb68/importlib_metadata-8.6.1-py3-none-any.whl", hash = "sha256:02a89390c1e15fdfdc0d7c6b25cb3e62650d0494005c97d6f148bf5b9787525e", size = 26971, upload-time = "2025-01-20T22:21:29.177Z" },
-]
-
-[[package]]
 name = "iniconfig"
 version = "2.1.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1417,15 +1405,6 @@ wheels = [
 ]
 
 [[package]]
-name = "pytz"
-version = "2025.2"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/f8/bf/abbd3cdfb8fbc7fb3d4d38d320f2441b1e7cbe29be4f23797b4a2b5d8aac/pytz-2025.2.tar.gz", hash = "sha256:360b9e3dbb49a209c21ad61809c7fb453643e048b38924c765813546746e81c3", size = 320884, upload-time = "2025-03-25T02:25:00.538Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/81/c4/34e93fe5f5429d7570ec1fa436f1986fb1f00c3e0f43a589fe2bbcd22c3f/pytz-2025.2-py2.py3-none-any.whl", hash = "sha256:5ddf76296dd8c44c26eb8f4b6f35488f3ccbf6fbbd7adee0b7262d43f0ec2f00", size = 509225, upload-time = "2025-03-25T02:24:58.468Z" },
-]
-
-[[package]]
 name = "pyyaml"
 version = "6.0.3"
 source = { registry = "https://pypi.org/simple" }
@@ -1584,22 +1563,21 @@ wheels = [
 
 [[package]]
 name = "taskiq"
-version = "0.11.18"
+version = "0.12.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
+    { name = "aiohttp" },
     { name = "anyio" },
-    { name = "importlib-metadata" },
     { name = "izulu" },
     { name = "packaging" },
     { name = "pycron" },
     { name = "pydantic" },
-    { name = "pytz" },
     { name = "taskiq-dependencies" },
-    { name = "typing-extensions" },
+    { name = "typing-extensions", marker = "python_full_version < '3.11'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/91/4d/0d1b3b6c77a45d7a8c685a9c916b2532cca36a26771831949b874f6d15c3/taskiq-0.11.18.tar.gz", hash = "sha256:b83e1b70aee74d0a197d4a4a5ba165b8ba85b12a2b3b7ebfa3c6fdcc9e3128a7", size = 54323, upload-time = "2025-07-15T16:25:54.37Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/67/9b/bb9b3ab5024051e80013170950bf5acb7729636918bab0ceb91a3900c815/taskiq-0.12.0.tar.gz", hash = "sha256:722d64b8176affb146635c7ac356d3e44efa446a3dc7a373694c0eb8852672b6", size = 60099, upload-time = "2025-11-26T18:38:54.618Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/4a/d5/46505f57c140d10d4c36f6bd2f2047fb0460e4d5b9b841dc3b93ab8c893d/taskiq-0.11.18-py3-none-any.whl", hash = "sha256:0df58be24e4ef5d19c8ef02581d35d392b0d780d3fe37950e0478022b85ce288", size = 79608, upload-time = "2025-07-15T16:25:52.707Z" },
+    { url = "https://files.pythonhosted.org/packages/37/88/e0bb05fcca198d313a50c5c461711a6f36d3a8d29010b65960796bdb03cd/taskiq-0.12.0-py3-none-any.whl", hash = "sha256:8fea577bbf72ceabd77338f643510c64787521f43e7907e605ebeead660c1a74", size = 90388, upload-time = "2025-11-26T18:38:53.4Z" },
 ]
 
 [[package]]
@@ -1905,15 +1883,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/48/b4/76c6b52ec7d6d49602e2cb8d725e3e6cab8172590dbc51e2fa50ce21cdba/ydb-3.21.12.tar.gz", hash = "sha256:612b1a81ab011b40120f187a249b919e85cfbea07de0db7b7664fbd566b83bab", size = 803993, upload-time = "2025-09-22T09:42:49.289Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/30/4d/bf5cdc2f13adf9439f0dd0e879cc0e342b63a1964285fdf4570713fcc152/ydb-3.21.12-py2.py3-none-any.whl", hash = "sha256:a1c685a9f88b0b6407c4c0a4803ee07f527cb7c17c346de9935dee920ab40122", size = 1046555, upload-time = "2025-09-22T09:42:47.457Z" },
-]
-
-[[package]]
-name = "zipp"
-version = "3.21.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/3f/50/bad581df71744867e9468ebd0bcd6505de3b275e06f202c2cb016e3ff56f/zipp-3.21.0.tar.gz", hash = "sha256:2c9958f6430a2040341a52eb608ed6dd93ef4392e02ffe219417c1b28b5dd1f4", size = 24545, upload-time = "2024-11-10T15:05:20.202Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/b7/1a/7e4798e9339adc931158c9d69ecc34f5e6791489d469f5e50ec15e35f458/zipp-3.21.0-py3-none-any.whl", hash = "sha256:ac1bbe05fd2991f160ebce24ffbac5f6d11d83dc90891255885223d42b3cd931", size = 9630, upload-time = "2024-11-10T15:05:19.275Z" },
 ]
 
 [[package]]
