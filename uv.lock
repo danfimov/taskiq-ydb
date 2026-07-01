@@ -1894,7 +1894,7 @@ wheels = [
 
 [[package]]
 name = "ydb"
-version = "3.21.12"
+version = "3.29.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiohttp" },
@@ -1902,9 +1902,9 @@ dependencies = [
     { name = "packaging" },
     { name = "protobuf" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/48/b4/76c6b52ec7d6d49602e2cb8d725e3e6cab8172590dbc51e2fa50ce21cdba/ydb-3.21.12.tar.gz", hash = "sha256:612b1a81ab011b40120f187a249b919e85cfbea07de0db7b7664fbd566b83bab", size = 803993, upload-time = "2025-09-22T09:42:49.289Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/cc/fb/17a5247b67d3df56646ad6aa39fd865cbb67d7bb8d0b60d7edde9e8ae04c/ydb-3.29.0.tar.gz", hash = "sha256:9a2824907fc6f8ee85f350c5c09d727822652938317dd6fe3d6ff57f87bd279e", size = 1017480, upload-time = "2026-05-08T12:12:53.661Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/30/4d/bf5cdc2f13adf9439f0dd0e879cc0e342b63a1964285fdf4570713fcc152/ydb-3.21.12-py2.py3-none-any.whl", hash = "sha256:a1c685a9f88b0b6407c4c0a4803ee07f527cb7c17c346de9935dee920ab40122", size = 1046555, upload-time = "2025-09-22T09:42:47.457Z" },
+    { url = "https://files.pythonhosted.org/packages/41/30/5ae2736a8e96d5d561744e9baa9d877b4a838a4fc5a2862655fe1f132d19/ydb-3.29.0-py2.py3-none-any.whl", hash = "sha256:5a4a0fec8ac19a30f73b670e051740d27f7dc913acd85eae791a135eaa0a3f8c", size = 1356151, upload-time = "2026-05-08T12:12:51.828Z" },
 ]
 
 [[package]]
